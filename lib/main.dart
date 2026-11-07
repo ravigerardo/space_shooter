@@ -1,3 +1,4 @@
+import 'package:flame/collisions.dart';
 import 'package:flame/events.dart';
 import 'package:flame/experimental.dart';
 import 'package:flame/parallax.dart';
@@ -30,6 +31,12 @@ class Bullet extends SpriteAnimationComponent
         textureSize: Vector2(8, 16),
       ),
     );
+
+    add(
+        RectangleHitbox(
+            collisionType: CollisionType.passive,
+        ),
+    );
   }
 
   @override
@@ -41,6 +48,33 @@ class Bullet extends SpriteAnimationComponent
     if (position.y < -height) {
       removeFromParent();
     }
+  }
+}
+
+class Explosion extends SpriteAnimationComponent
+    with HasGameReference<SpaceShooterGame> {
+  Explosion({
+    super.position,
+  }) : super(
+          size: Vector2.all(150),
+          anchor: Anchor.center,
+          removeOnFinish: true,
+        );
+
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    animation = await game.loadSpriteAnimation(
+      'explosion.png',
+      SpriteAnimationData.sequenced(
+        amount: 6,
+        stepTime: .1,
+        textureSize: Vector2.all(32),
+        loop: false,
+      ),
+    );
   }
 }
 
@@ -89,7 +123,7 @@ class Player extends SpriteAnimationComponent
   }
 }
 
-class Enemy extends SpriteAnimationComponent with HasGameReference<SpaceShooterGame> {
+class Enemy extends SpriteAnimationComponent with HasGameReference<SpaceShooterGame>, CollisionCallbacks {
 
   Enemy({
     super.position,
@@ -113,6 +147,8 @@ class Enemy extends SpriteAnimationComponent with HasGameReference<SpaceShooterG
         textureSize: Vector2.all(16),
       ),
     );
+
+    add(RectangleHitbox());
   }
 
   @override
@@ -125,9 +161,23 @@ class Enemy extends SpriteAnimationComponent with HasGameReference<SpaceShooterG
       removeFromParent();
     }
   }
+
+  @override
+  void onCollisionStart(
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
+    super.onCollisionStart(intersectionPoints, other);
+
+    if (other is Bullet) {
+      removeFromParent();
+      other.removeFromParent();
+      game.add(Explosion(position: position));
+    }
+  }
 }
 
-class SpaceShooterGame extends FlameGame with DragCallbacks {
+class SpaceShooterGame extends FlameGame with DragCallbacks, HasCollisionDetection {
   late Player player;
 
   @override
