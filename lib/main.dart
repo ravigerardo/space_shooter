@@ -7,17 +7,68 @@ import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 
 void main() {
-  runApp(GameWidget(game: SpaceShooterGame()));
+  runApp(
+    GameWidget(
+      game: SpaceShooterGame(),
+      overlayBuilderMap: {
+        'GameOver': (context, SpaceShooterGame game) {
+          return Material(
+            color: Colors.transparent,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(10.0),
+                height: 200,
+                width: 300,
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(255, 0, 0, 0),
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Game Over',
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                        fontSize: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    SizedBox(
+                      width: 200,
+                      height: 75,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          game.overlays.remove('GameOver');
+                          game.restart();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromARGB(255, 255, 255, 255),
+                        ),
+                        child: const Text(
+                          'Play Again',
+                          style: TextStyle(
+                            fontSize: 28.0,
+                            color: Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      },
+    ),
+  );
 }
 
 class Bullet extends SpriteAnimationComponent
     with HasGameReference<SpaceShooterGame> {
-  Bullet({
-    super.position,
-  }) : super(
-          size: Vector2(25, 50),
-          anchor: Anchor.center,
-        );
+  Bullet({super.position})
+    : super(size: Vector2(25, 50), anchor: Anchor.center);
 
   @override
   Future<void> onLoad() async {
@@ -32,11 +83,7 @@ class Bullet extends SpriteAnimationComponent
       ),
     );
 
-    add(
-        RectangleHitbox(
-            collisionType: CollisionType.passive,
-        ),
-    );
+    add(RectangleHitbox(collisionType: CollisionType.passive));
   }
 
   @override
@@ -53,14 +100,12 @@ class Bullet extends SpriteAnimationComponent
 
 class Explosion extends SpriteAnimationComponent
     with HasGameReference<SpaceShooterGame> {
-  Explosion({
-    super.position,
-  }) : super(
-          size: Vector2.all(150),
-          anchor: Anchor.center,
-          removeOnFinish: true,
-        );
-
+  Explosion({super.position})
+    : super(
+        size: Vector2.all(150),
+        anchor: Anchor.center,
+        removeOnFinish: true,
+      );
 
   @override
   Future<void> onLoad() async {
@@ -106,8 +151,9 @@ class Player extends SpriteAnimationComponent
       },
       autoStart: false,
     );
-
     game.add(_bulletSpawner);
+
+    add(RectangleHitbox(collisionType: CollisionType.passive));
   }
 
   void move(Vector2 delta) {
@@ -123,15 +169,10 @@ class Player extends SpriteAnimationComponent
   }
 }
 
-class Enemy extends SpriteAnimationComponent with HasGameReference<SpaceShooterGame>, CollisionCallbacks {
-
-  Enemy({
-    super.position,
-  }) : super(
-          size: Vector2.all(enemySize),
-          anchor: Anchor.center,
-        );
-
+class Enemy extends SpriteAnimationComponent
+    with HasGameReference<SpaceShooterGame>, CollisionCallbacks {
+  Enemy({super.position})
+    : super(size: Vector2.all(enemySize), anchor: Anchor.center);
 
   static const enemySize = 50.0;
 
@@ -173,12 +214,22 @@ class Enemy extends SpriteAnimationComponent with HasGameReference<SpaceShooterG
       removeFromParent();
       other.removeFromParent();
       game.add(Explosion(position: position));
+    } else if (other is Player) {
+      other.removeFromParent();
+      game.add(Explosion(position: position));
+      game.overlays.add('GameOver');
     }
   }
 }
 
-class SpaceShooterGame extends FlameGame with DragCallbacks, HasCollisionDetection {
+class SpaceShooterGame extends FlameGame
+    with DragCallbacks, HasCollisionDetection {
   late Player player;
+
+  void restart() {
+    player = Player();
+    add(player);
+  }
 
   @override
   Future<void> onLoad() async {
@@ -201,9 +252,7 @@ class SpaceShooterGame extends FlameGame with DragCallbacks, HasCollisionDetecti
 
     add(
       SpawnComponent(
-        factory: (index) {
-          return Enemy();
-        },
+        factory: (index) => Enemy(),
         period: 1,
         area: Rectangle.fromLTWH(0, 0, size.x, -Enemy.enemySize),
       ),
