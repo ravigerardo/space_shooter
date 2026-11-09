@@ -48,9 +48,11 @@ class Enemy extends SpriteAnimationComponent
     super.onCollisionStart(intersectionPoints, other);
 
     if (other is Bullet) {
+      game.enemiesDefeated += 1;
       removeFromParent();
       other.removeFromParent();
       game.add(Explosion(position: position));
+      game.enemiesSpawn.period = 1 - game.enemiesDefeated/100;
     } else if (other is Player) {
       removeFromParent();
       add(Explosion(position: position));

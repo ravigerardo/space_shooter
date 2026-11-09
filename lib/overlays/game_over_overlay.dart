@@ -18,7 +18,7 @@ class GameOverOverlay extends StatelessWidget {
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(10.0),
-          height: 200,
+          height: 250,
           width: 300,
           decoration: const BoxDecoration(
             color: Color.fromARGB(255, 0, 0, 0),
@@ -32,6 +32,20 @@ class GameOverOverlay extends StatelessWidget {
                 style: TextStyle(
                   color: Color.fromARGB(255, 255, 255, 255),
                   fontSize: 24,
+                ),
+              ),
+              Text(
+                "Enemies Defeated: ${game.enemiesDefeated}",
+                style: TextStyle(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                  fontSize: 16,
+                ),
+              ),
+              Text(
+                "Period: ${game.enemiesSpawn.period}",
+                style: TextStyle(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                  fontSize: 10,
                 ),
               ),
               const SizedBox(height: 40),

@@ -4,17 +4,20 @@ import 'package:flame/experimental.dart';
 import 'package:flame/game.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:space_shooter/actors/enemy.dart';
 
 import 'actors/player.dart';
-import 'objects/explosion.dart';
 
 class SpaceShooterGame extends FlameGame
-    with DragCallbacks, HasCollisionDetection {
+    with DragCallbacks, HasCollisionDetection, KeyboardEvents {
   late Player player;
   late SpawnComponent enemiesSpawn;
+  late int enemiesDefeated;
 
   void initialize() {
+    enemiesDefeated = 0;
+
     player = Player();
     add(player);
 
@@ -56,15 +59,27 @@ class SpaceShooterGame extends FlameGame
     player.move(event.localDelta);
   }
 
-  @override
-  void onDragStart(DragStartEvent event) {
-    super.onDragStart(event);
-    player.startShooting();
-  }
+  // @override
+  // void onDragStart(DragStartEvent event) {
+  //   super.onDragStart(event);
+  //   player.startShooting();
+  // }
+
+  // @override
+  // void onDragEnd(DragEndEvent event) {
+  //   super.onDragEnd(event);
+  //   player.stopShooting();
+  // }
 
   @override
-  void onDragEnd(DragEndEvent event) {
-    super.onDragEnd(event);
-    player.stopShooting();
+  KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    final isKeyDown = event is KeyDownEvent;
+    final isSpace = keysPressed.contains(LogicalKeyboardKey.space);
+
+    if (isSpace && isKeyDown) {
+      player.shoot();
+      KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 }

@@ -48,4 +48,8 @@ class Player extends SpriteAnimationComponent
   void stopShooting() {
     _bulletSpawner.timer.stop();
   }
+
+  void shoot() {
+    game.add(Bullet(position: position + Vector2(0, -height / 2)));
+  }
 }
